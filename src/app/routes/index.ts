@@ -3,6 +3,7 @@ import swaggerDocs from "../utils/swagger";
 import artistRoute from "./artist.route";
 import authRoute from "./auth.route";
 import metaRoute from "./meta.route";
+import orderRoute from "./order.route";
 import uploadRoute from "./upload.route";
 
 const router = express.Router();
@@ -15,6 +16,10 @@ const moduleRoutes = [
   {
     path: "/artist",
     route: artistRoute,
+  },
+  {
+    path: "/order",
+    route: orderRoute,
   },
   {
     path: "/meta",
