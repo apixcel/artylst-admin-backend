@@ -5,6 +5,7 @@ import authRoute from "./auth.route";
 import metaRoute from "./meta.route";
 import orderRoute from "./order.route";
 import uploadRoute from "./upload.route";
+import userManagementRoute from "./userManagement.route";
 
 const router = express.Router();
 
@@ -20,6 +21,10 @@ const moduleRoutes = [
   {
     path: "/order",
     route: orderRoute,
+  },
+  {
+    path: "/user-management",
+    route: userManagementRoute,
   },
   {
     path: "/meta",

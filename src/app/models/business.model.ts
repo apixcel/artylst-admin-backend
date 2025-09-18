@@ -40,7 +40,6 @@ const BusinessSchema = new mongoose.Schema(
     },
     useCase: {
       type: String,
-      enum: ["daily", "special-occasion"],
       required: true,
     },
     avatar: {

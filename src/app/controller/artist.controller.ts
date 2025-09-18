@@ -247,7 +247,6 @@ const getArtists = catchAsyncError(async (req, res) => {
 
 const getArtistProfileByUserName = catchAsyncError(async (req, res) => {
   const userName = req.params.userName;
-  const auth = req.user;
 
   const artist = await Artist.findOne({ userName: userName })
     .select("-password -auth -dob -email")
@@ -664,6 +663,7 @@ const artistController = {
   getRankedArtists,
   getArtistProfileByUserName,
   topViewedArtistsLast30Days,
+  popularArtistsThisWeek,
 };
 
 export default artistController;

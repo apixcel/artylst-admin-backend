@@ -14,7 +14,7 @@ const login = catchAsyncError(async (req, res) => {
   const body = req.body;
 
   const isExist = await Auth.findOne({
-    email: body.identifier,
+    email: body.email,
   }).select("+password");
 
   if (!isExist) {
@@ -40,7 +40,7 @@ const login = catchAsyncError(async (req, res) => {
     role: isExist.role,
   });
 
-  let profile = await Admin.findOne({ auth: isExist._id });
+  const profile = await Admin.findOne({ auth: isExist._id });
 
   if (!profile) {
     throw new AppError(404, "Profile not found");

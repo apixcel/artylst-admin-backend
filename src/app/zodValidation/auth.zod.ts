@@ -1,5 +1,4 @@
 import { z } from "zod";
-const usernameRegex = /^(?!.*[._-]{2})[a-zA-Z0-9](?:[a-zA-Z0-9._-]{1,28}[a-zA-Z0-9])$/;
 
 const userNameSchema = z
   .string()
@@ -26,21 +25,7 @@ const checkUserName = z.object({
   userName: userNameSchema,
 });
 const login = z.object({
-  identifier: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .superRefine((val, ctx) => {
-      const isEmail = emailSchema.safeParse(val).success;
-      const isUsername = usernameRegex.test(val);
-      if (!isEmail && !isUsername) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "Enter a valid email or username (3–30 chars; letters, numbers, ., _, -; no leading/trailing punctuation or doubles).",
-        });
-      }
-    }),
+  email: emailSchema,
   password: z.string({ message: "Password is required" }),
 });
 

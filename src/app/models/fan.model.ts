@@ -2,11 +2,7 @@ import mongoose from "mongoose";
 
 const FanSchema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
+    fullName: {
       type: String,
       required: true,
     },
@@ -14,6 +10,11 @@ const FanSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+    },
+    auth: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Auth",
+      required: true,
     },
     email: {
       type: String,
@@ -23,6 +24,7 @@ const FanSchema = new mongoose.Schema(
     avatar: {
       type: String,
       required: false,
+      default: null,
     },
   },
   { timestamps: true }

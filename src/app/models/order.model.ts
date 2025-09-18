@@ -15,7 +15,7 @@ const OrderSchema = new mongoose.Schema(
     },
     buyer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Business",
+      ref: "Auth",
       required: false,
     },
     maxRevision: {
@@ -23,12 +23,10 @@ const OrderSchema = new mongoose.Schema(
       required: false,
       default: 0,
     },
-
     price: {
       type: Number,
       required: true,
     },
-
     eta: {
       type: Date,
       required: false,
@@ -94,11 +92,11 @@ const OrderSchema = new mongoose.Schema(
     tierId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Pricing",
-      required: true,
+      required: false,
     },
     tier: {
       type: String,
-      required: true,
+      required: false,
     },
     // more data will be added in future(if needed, unless remove this :')
   },
