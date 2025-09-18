@@ -4,6 +4,7 @@ import catchAsyncError from "../utils/catchAsync";
 
 import mongoose, { PipelineStage } from "mongoose";
 import AppError from "../errors/AppError";
+import Artist from "../models/artist.model";
 import sendResponse from "../utils/send.response";
 
 const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
@@ -192,7 +193,153 @@ const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
     },
   });
 });
+const getAllArtists = catchAsyncError(async (req, res) => {
+  const {
+    page = "1",
+    limit = "20",
+    searchTerm,
+    sort = "-createdAt",
+    isBanned,
+  } = req.query as {
+    page?: string;
+    limit?: string;
+    searchTerm?: string;
+    sort?: string;
+    isBanned?: string;
+  };
 
+  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+
+  // allowed sorts (same as your other controller)
+  const sortField = (() => {
+    const allowed = new Set([
+      "createdAt",
+      "-createdAt",
+      "name",
+      "-name",
+      "email",
+      "-email",
+      "orders",
+      "-orders",
+    ]);
+    if (!allowed.has(sort)) return "-createdAt";
+    return sort;
+  })();
+
+  const sortStage: PipelineStage = (() => {
+    const dir = sortField.startsWith("-") ? -1 : 1;
+    const field = sortField.replace(/^-/, "");
+    return { $sort: { [field]: dir, _id: 1 } };
+  })();
+
+  const pipeline: PipelineStage[] = [
+    // Start from Artist
+    // Join Auth to enforce "verified" and read isBanned
+    {
+      $lookup: {
+        from: "auths",
+        localField: "auth",
+        foreignField: "_id",
+        as: "auth",
+      },
+    },
+    { $unwind: "$auth" },
+
+    // Only verified artists; optional isBanned filter
+    {
+      $match: {
+        "auth.isVerified": true,
+        ...(isBanned === "true" ? { "auth.isBanned": true } : {}),
+        ...(isBanned === "false" ? { "auth.isBanned": false } : {}),
+      },
+    },
+
+    // Count orders per artist
+    {
+      $lookup: {
+        from: "orders",
+        let: { artistId: "$_id" },
+        pipeline: [{ $match: { $expr: { $eq: ["$artist", "$$artistId"] } } }, { $count: "count" }],
+        as: "ordersAgg",
+      },
+    },
+    {
+      $addFields: {
+        orders: { $ifNull: [{ $arrayElemAt: ["$ordersAgg.count", 0] }, 0] },
+      },
+    },
+
+    // Derive table fields
+    {
+      $addFields: {
+        name: { $ifNull: ["$displayName", "$fullName"] },
+        emailResolved: { $ifNull: ["$email", "$auth.email"] },
+        type: "artist",
+      },
+    },
+
+    // Project final fields (include both ids for admin ops if you need them)
+    {
+      $project: {
+        _id: "$auth._id", // keep auth id as primary (matches your other list)
+        artistId: "$_id", // also return artistId for convenience
+        name: 1,
+        email: "$emailResolved",
+        type: 1,
+        orders: 1,
+        createdAt: 1, // artist doc creation date
+        isBanned: "$auth.isBanned",
+      },
+    },
+  ];
+
+  // Search by name/email/username/displayName/fullName
+  if (searchTerm && String(searchTerm).trim().length > 0) {
+    const term = String(searchTerm).trim();
+    pipeline.push({
+      $match: {
+        $or: [
+          { name: { $regex: term, $options: "i" } },
+          { email: { $regex: term, $options: "i" } },
+        ],
+      },
+    });
+  }
+
+  // Sorting + pagination
+  pipeline.push(
+    sortStage,
+    {
+      $facet: {
+        data: [{ $skip: (pageNum - 1) * limitNum }, { $limit: limitNum }],
+        total: [{ $count: "count" }],
+      },
+    },
+    {
+      $addFields: {
+        total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
+      },
+    }
+  );
+
+  const [result] = await Artist.aggregate(pipeline);
+
+  const total = result?.total ?? 0;
+  const data = result?.data ?? [];
+
+  return sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    data,
+    message: "Artists fetched successfully",
+    meta: {
+      page: pageNum,
+      limit: limitNum,
+      totalDoc: total as number,
+    },
+  });
+});
 const toggleAccountBanStatus = catchAsyncError(async (req, res) => {
   const authId = req.params.authId;
 
@@ -216,6 +363,7 @@ const toggleAccountBanStatus = catchAsyncError(async (req, res) => {
 const userManagementController = {
   getAllFanAndBusinessAccounts,
   toggleAccountBanStatus,
+  getAllArtists,
 };
 
 export default userManagementController;

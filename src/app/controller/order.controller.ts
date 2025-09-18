@@ -23,12 +23,13 @@ const geteAllOrders = catchAsyncError(async (req, res) => {
 
   ["endDate", "startDate"].forEach((key) => delete query[key]);
 
-  const model = Order.find(match).populate({ path: "artist", select: "user_name" });
+  const model = Order.find(match).populate({ path: "artist", select: "userName" });
   const queryModel = new QueryBuilder(model, req.query)
     .filter()
     .paginate()
     .search(["email", "tier", "deliveryInfo.email", "deliveryInfo.name", "orderId"])
     .sort();
+    
 
   await queryModel.count();
   const orders = await queryModel.modelQuery;
