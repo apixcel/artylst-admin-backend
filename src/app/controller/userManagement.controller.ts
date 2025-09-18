@@ -211,7 +211,6 @@ const getAllArtists = catchAsyncError(async (req, res) => {
   const pageNum = Math.max(parseInt(page, 10) || 1, 1);
   const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-  // allowed sorts (same as your other controller)
   const sortField = (() => {
     const allowed = new Set([
       "createdAt",
@@ -223,7 +222,9 @@ const getAllArtists = catchAsyncError(async (req, res) => {
       "orders",
       "-orders",
     ]);
-    if (!allowed.has(sort)) return "-createdAt";
+    if (!allowed.has(sort)) {
+      return "-createdAt";
+    }
     return sort;
   })();
 
@@ -234,8 +235,6 @@ const getAllArtists = catchAsyncError(async (req, res) => {
   })();
 
   const pipeline: PipelineStage[] = [
-    // Start from Artist
-    // Join Auth to enforce "verified" and read isBanned
     {
       $lookup: {
         from: "auths",
@@ -246,7 +245,6 @@ const getAllArtists = catchAsyncError(async (req, res) => {
     },
     { $unwind: "$auth" },
 
-    // Only verified artists; optional isBanned filter
     {
       $match: {
         "auth.isVerified": true,
@@ -255,7 +253,6 @@ const getAllArtists = catchAsyncError(async (req, res) => {
       },
     },
 
-    // Count orders per artist
     {
       $lookup: {
         from: "orders",
@@ -270,7 +267,6 @@ const getAllArtists = catchAsyncError(async (req, res) => {
       },
     },
 
-    // Derive table fields
     {
       $addFields: {
         name: { $ifNull: ["$displayName", "$fullName"] },
@@ -279,22 +275,22 @@ const getAllArtists = catchAsyncError(async (req, res) => {
       },
     },
 
-    // Project final fields (include both ids for admin ops if you need them)
+    // ⬇️ include avatar in the final output
     {
       $project: {
-        _id: "$auth._id", // keep auth id as primary (matches your other list)
-        artistId: "$_id", // also return artistId for convenience
+        _id: "$auth._id",
+        artistId: "$_id",
         name: 1,
         email: "$emailResolved",
         type: 1,
         orders: 1,
-        createdAt: 1, // artist doc creation date
+        createdAt: 1,
         isBanned: "$auth.isBanned",
+        avatar: "$avatar", // <- added
       },
     },
   ];
 
-  // Search by name/email/username/displayName/fullName
   if (searchTerm && String(searchTerm).trim().length > 0) {
     const term = String(searchTerm).trim();
     pipeline.push({
@@ -307,7 +303,6 @@ const getAllArtists = catchAsyncError(async (req, res) => {
     });
   }
 
-  // Sorting + pagination
   pipeline.push(
     sortStage,
     {
@@ -340,6 +335,7 @@ const getAllArtists = catchAsyncError(async (req, res) => {
     },
   });
 });
+
 const toggleAccountBanStatus = catchAsyncError(async (req, res) => {
   const authId = req.params.authId;
 
