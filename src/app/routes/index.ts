@@ -1,5 +1,6 @@
 import express from "express";
 import swaggerDocs from "../utils/swagger";
+import adminRoute from "./admin.route";
 import artistRoute from "./artist.route";
 import authRoute from "./auth.route";
 import metaRoute from "./meta.route";
@@ -13,6 +14,10 @@ const moduleRoutes = [
   {
     path: "/auth/admin",
     route: authRoute,
+  },
+  {
+    path: "/admin",
+    route: adminRoute,
   },
   {
     path: "/artist",
