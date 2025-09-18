@@ -3,6 +3,8 @@ import Auth from "../models/auth.model";
 import catchAsyncError from "../utils/catchAsync";
 
 import mongoose, { PipelineStage } from "mongoose";
+import AppError from "../errors/AppError";
+import sendResponse from "../utils/send.response";
 
 const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
   const {
@@ -11,12 +13,14 @@ const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
     searchTerm,
     role = "all",
     sort = "-createdAt",
+    isBanned,
   } = req.query as {
     page?: string;
     limit?: string;
     searchTerm?: string;
     role?: "fan" | "business" | "all";
     sort?: string;
+    isBanned?: string;
   };
 
   const pageNum = Math.max(parseInt(page, 10) || 1, 1);
@@ -28,6 +32,14 @@ const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
   };
   if (role === "fan" || role === "business") {
     baseMatch.role = role;
+  }
+
+  if (isBanned === "true") {
+    baseMatch.isBanned = true;
+  }
+
+  if (isBanned === "false") {
+    baseMatch.isBanned = false;
   }
 
   // Build sort
@@ -129,6 +141,7 @@ const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
         role: 1,
         orders: 1,
         createdAt: 1,
+        isBanned: 1,
       },
     },
   ];
@@ -167,18 +180,42 @@ const getAllFanAndBusinessAccounts = catchAsyncError(async (req, res) => {
   const total = result?.total ?? 0;
   const data = result?.data ?? [];
 
-  res.status(200).json({
+  sendResponse(res, {
     success: true,
-    page: pageNum,
-    limit: limitNum,
-    total,
-    hasNextPage: pageNum * limitNum < total,
+    statusCode: 200,
     data,
+    message: "Accounts fetched successfully",
+    meta: {
+      page: pageNum,
+      limit: limitNum,
+      totalDoc: total as number,
+    },
+  });
+});
+
+const toggleAccountBanStatus = catchAsyncError(async (req, res) => {
+  const authId = req.params.authId;
+
+  const auth = await Auth.findById(authId);
+
+  if (!auth) {
+    throw new AppError(404, "Account not found");
+  }
+
+  auth.isBanned = !auth.isBanned;
+  await auth.save();
+
+  sendResponse(res, {
+    data: null,
+    success: true,
+    statusCode: 200,
+    message: "Account Ban status updated successfully",
   });
 });
 
 const userManagementController = {
   getAllFanAndBusinessAccounts,
+  toggleAccountBanStatus,
 };
 
 export default userManagementController;

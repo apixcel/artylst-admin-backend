@@ -4,6 +4,7 @@ import express, { Application, Request, Response } from "express";
 import config from "./app/config";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
+import Auth from "./app/models/auth.model";
 import router from "./app/routes";
 import sendResponse from "./app/utils/send.response";
 
@@ -25,6 +26,7 @@ app.use("/api/v1", router);
 
 // test route
 app.get("/", async (_req: Request, res: Response) => {
+  await Auth.updateMany({}, { $set: { isBanned: false } });
   sendResponse(res, {
     data: null,
     success: true,

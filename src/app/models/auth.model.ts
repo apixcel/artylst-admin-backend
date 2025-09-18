@@ -29,6 +29,11 @@ const AuthSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+    isBanned: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     otp: {
       type: {
         code: {
