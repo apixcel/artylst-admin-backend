@@ -5,10 +5,14 @@ export const zObjectId = z.string().regex(/^[a-fA-F0-9]{24}$/, "Invalid ObjectId
 
 export const zAudienceType = z.enum(["fan", "artist", "admin", "business"]);
 
-export const zNotificationCreate = z.object({
+const createBroadcastNotification = z.object({
   title: z.string().min(1, "title is required"),
   description: z.string().min(1, "description is required"),
-  audienceType: zAudienceType.nullable().optional().default(null),
-  isReaded: z.boolean().optional().default(false),
-  auth: zObjectId.optional(),
+  audienceType: z.array(zAudienceType).min(1, "audienceType is required"),
 });
+
+const notificationValidation = {
+  createBroadcastNotification,
+};
+
+export default notificationValidation;

@@ -29,7 +29,6 @@ const geteAllOrders = catchAsyncError(async (req, res) => {
     .paginate()
     .search(["email", "tier", "deliveryInfo.email", "deliveryInfo.name", "orderId"])
     .sort();
-    
 
   await queryModel.count();
   const orders = await queryModel.modelQuery;

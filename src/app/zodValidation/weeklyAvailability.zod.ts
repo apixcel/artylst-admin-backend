@@ -66,7 +66,7 @@ const alter = z.object({
 });
 
 const weeklyAvailabilityValidations = {
-   alter,
+  alter,
 };
 
 export default weeklyAvailabilityValidations;

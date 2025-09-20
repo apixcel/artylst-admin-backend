@@ -9,7 +9,7 @@ const uploadSingle = catchAsyncError(async (req, res) => {
     throw new AppError(400, "No file uploaded");
   }
   const imageUrl = await uploadToCloudinary(file.path);
-  
+
   sendResponse(res, {
     success: true,
     statusCode: 200,

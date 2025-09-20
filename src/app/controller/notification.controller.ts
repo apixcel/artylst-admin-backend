@@ -63,6 +63,7 @@ const getAllBroadcastNotifications = catchAsyncError(async (req, res) => {
     success: true,
     statusCode: 200,
     message: "Notifications fetched successfully",
+    meta,
   });
 });
 

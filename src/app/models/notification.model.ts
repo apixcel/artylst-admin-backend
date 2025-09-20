@@ -11,7 +11,7 @@ const NotificationSchema = new mongoose.Schema(
       required: true,
     },
     audienceType: {
-      type: String,
+      type: [String],
       enum: ["fan", "artist", "admin", "business"],
       required: false,
       default: null,
