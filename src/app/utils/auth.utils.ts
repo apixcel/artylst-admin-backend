@@ -134,7 +134,7 @@ const issueTokensForDevice = async (
   });
 
   if (sessionCount >= AUTH_MAX_LOGIN_DEVICE) {
-    throw new AppError(400, "Maximum number of login device reached");
+    throw new AppError(400, "SESSION_MAX_OUT");
   }
 
   const rawRefresh = generateRawRefreshToken();

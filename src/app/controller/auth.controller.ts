@@ -95,8 +95,6 @@ const refreshToken = catchAsyncError(async (req, res) => {
   });
 
   if (!session || session.revokedAt) {
-    console.log(session);
-
     throw new AppError(419, "SESSION_EXPIRED");
   }
 

@@ -4,6 +4,7 @@ import adminRoute from "./admin.route";
 import artistRoute from "./artist.route";
 import authRoute from "./auth.route";
 import metaRoute from "./meta.route";
+import notificationRoute from "./notification.route";
 import orderRoute from "./order.route";
 import uploadRoute from "./upload.route";
 import userManagementRoute from "./userManagement.route";
@@ -30,6 +31,10 @@ const moduleRoutes = [
   {
     path: "/user-management",
     route: userManagementRoute,
+  },
+  {
+    path: "/notification",
+    route: notificationRoute,
   },
   {
     path: "/meta",
